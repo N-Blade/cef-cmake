@@ -10,22 +10,12 @@ if(NOT CEF_CMAKE_INCLUDED)
 endif()
 
 if(NOT CEF_VERSION)
-    set(CEF_VERSION 75.1.4+g4210896+chromium-75.0.3770.100)
+    set(CEF_VERSION 103.0.12+g8eb56c7+chromium-103.0.5060.134)
     message(STATUS "CEF-CMake: CEF_VERSION not specified. Defaulting to ${CEF_VERSION}")
 endif()
 
 if(NOT CEF_CMAKE_OUTPUT_DIR)
-    if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
-        message(SEND_ERROR "CEF-CMake: Neither CEF_CMAKE_OUTPUT_DIR nor CMAKE_RUNTIME_OUTPUT_DIRECTORY was specified. You need to specify one for the binary assets of CEF to be copied.")
-    endif()
-
-    # CEF_CMAKE_OUTPUT_DIR is used to copy the required shared libraries next to the executable
-    set(CEF_CMAKE_OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-    message(STATUS "CEF-CMake: CEF_CMAKE_OUTPUT_DIR was not specified. Defaulting to CMAKE_RUNTIME_OUTPUT_DIRECTORY: ${CEF_CMAKE_OUTPUT_DIR}")
-endif()
-
-if(MSVC)
-    set(CEF_CMAKE_OUTPUT_DIR ${CEF_CMAKE_OUTPUT_DIR}/$<CONFIG>)
+    message(SEND_ERROR "CEF-CMake: CEF_CMAKE_OUTPUT_DIR was specified. You need to specify one for the binary assets of CEF to be copied.")
 endif()
 
 if(CEF_CMAKE_OS_LINUX)
@@ -91,17 +81,13 @@ target_include_directories(cefdll_wrapper
 
 add_custom_command(TARGET cefdll_wrapper POST_BUILD
     COMMENT "cefdll_wrapper: Copying CEF resources"
-    COMMAND ${CMAKE_COMMAND} -E
-    make_directory ${CEF_CMAKE_OUTPUT_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/locales
     ${CEF_CMAKE_OUTPUT_DIR}/locales
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef.pak
-    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_100_percent.pak
-    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_200_percent.pak
-    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_extensions.pak
-    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/devtools_resources.pak
+    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/chrome_100_percent.pak
+    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/chrome_200_percent.pak
+    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/resources.pak
     ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/icudtl.dat
     ${CEF_CMAKE_OUTPUT_DIR}
 )
@@ -155,20 +141,17 @@ elseif(CEF_CMAKE_OS_WINDOWS)
 
     add_custom_command(TARGET cefdll_wrapper POST_BUILD
         COMMENT "cefdll_wrapper: Copying CEF binaries"
-        COMMAND ${CMAKE_COMMAND} -E
-        make_directory ${CEF_CMAKE_OUTPUT_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/swiftshader
-        ${CEF_CMAKE_OUTPUT_DIR}/swiftshader
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/chrome_elf.dll
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/d3dcompiler_47.dll
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libcef.dll
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libEGL.dll
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libGLESv2.dll
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/natives_blob.bin
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/snapshot_blob.bin
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/v8_context_snapshot.bin
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Release/chrome_elf.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Release/d3dcompiler_47.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Release/libcef.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Release/libEGL.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Release/libGLESv2.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Release/snapshot_blob.bin
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Release/v8_context_snapshot.bin
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Release/vk_swiftshader.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Release/vk_swiftshader_icd.json
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Release/vulkan-1.dll
         ${CEF_CMAKE_OUTPUT_DIR}
     )
 
