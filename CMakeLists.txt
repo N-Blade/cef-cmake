@@ -18,6 +18,7 @@ if(NOT CEF_CMAKE_OUTPUT_DIR)
     if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
         message(SEND_ERROR "CEF-CMake: Neither CEF_CMAKE_OUTPUT_DIR nor CMAKE_RUNTIME_OUTPUT_DIRECTORY was specified. You need to specify one for the binary assets of CEF to be copied.")
     endif()
+
     # CEF_CMAKE_OUTPUT_DIR is used to copy the required shared libraries next to the executable
     set(CEF_CMAKE_OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
     message(STATUS "CEF-CMake: CEF_CMAKE_OUTPUT_DIR was not specified. Defaulting to CMAKE_RUNTIME_OUTPUT_DIRECTORY: ${CEF_CMAKE_OUTPUT_DIR}")
@@ -44,6 +45,7 @@ else()
 endif()
 
 set(cefArchiveURL https://cef-builds.spotifycdn.com/${cefName}.tar.bz2)
+
 # fix the url as the version may contain pluses
 string(REGEX REPLACE "\\+" "%2B" cefArchiveURL ${cefArchiveURL})
 set(cefArchive ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}.tar.bz2)
@@ -71,13 +73,15 @@ add_library(cefdll_wrapper STATIC ${srcs})
 
 target_compile_definitions(cefdll_wrapper
     PRIVATE
-        # Creating the CEF wrapper library. Do not define this for dependent targets.
-        -DWRAPPING_CEF_SHARED
+
+    # Creating the CEF wrapper library. Do not define this for dependent targets.
+    -DWRAPPING_CEF_SHARED
     PUBLIC
-        # Allow C++ programs to use stdint.h macros specified in the C99 standard that aren't
-        # in the C++ standard (e.g. UINT8_MAX, INT64_MIN, etc)
-        -D__STDC_CONSTANT_MACROS
-        -D__STDC_FORMAT_MACROS
+
+    # Allow C++ programs to use stdint.h macros specified in the C99 standard that aren't
+    # in the C++ standard (e.g. UINT8_MAX, INT64_MIN, etc)
+    -D__STDC_CONSTANT_MACROS
+    -D__STDC_FORMAT_MACROS
 )
 
 target_include_directories(cefdll_wrapper
@@ -88,18 +92,18 @@ target_include_directories(cefdll_wrapper
 add_custom_command(TARGET cefdll_wrapper POST_BUILD
     COMMENT "cefdll_wrapper: Copying CEF resources"
     COMMAND ${CMAKE_COMMAND} -E
-        make_directory ${CEF_CMAKE_OUTPUT_DIR}
+    make_directory ${CEF_CMAKE_OUTPUT_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/locales
-        ${CEF_CMAKE_OUTPUT_DIR}/locales
+    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/locales
+    ${CEF_CMAKE_OUTPUT_DIR}/locales
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef.pak
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_100_percent.pak
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_200_percent.pak
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_extensions.pak
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/devtools_resources.pak
-        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/icudtl.dat
-        ${CEF_CMAKE_OUTPUT_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef.pak
+    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_100_percent.pak
+    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_200_percent.pak
+    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/cef_extensions.pak
+    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/devtools_resources.pak
+    ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/Resources/icudtl.dat
+    ${CEF_CMAKE_OUTPUT_DIR}
 )
 
 if(CEF_CMAKE_OS_LINUX)
@@ -113,21 +117,20 @@ if(CEF_CMAKE_OS_LINUX)
     add_custom_command(TARGET cefdll_wrapper POST_BUILD
         COMMENT "cefdll_wrapper: Copying CEF binaries"
         COMMAND ${CMAKE_COMMAND} -E
-            make_directory ${CEF_CMAKE_OUTPUT_DIR}
+        make_directory ${CEF_CMAKE_OUTPUT_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/swiftshader
-            ${CEF_CMAKE_OUTPUT_DIR}/swiftshader
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/swiftshader
+        ${CEF_CMAKE_OUTPUT_DIR}/swiftshader
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/chrome-sandbox
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libcef.so
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libEGL.so
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libGLESv2.so
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/natives_blob.bin
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/snapshot_blob.bin
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/v8_context_snapshot.bin
-            ${CEF_CMAKE_OUTPUT_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/chrome-sandbox
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libcef.so
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libEGL.so
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libGLESv2.so
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/natives_blob.bin
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/snapshot_blob.bin
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/v8_context_snapshot.bin
+        ${CEF_CMAKE_OUTPUT_DIR}
     )
-
 
     if(CEF_USE_SANDBOX)
         target_compile_definitions(cefdll_wrapper
@@ -136,12 +139,9 @@ if(CEF_CMAKE_OS_LINUX)
     endif()
 
 elseif(CEF_CMAKE_OS_WINDOWS)
-
     target_compile_definitions(cefdll_wrapper PUBLIC
         -DNOMINMAX
         -DWIN32_LEAN_AND_MEAN
-        -DUNICODE
-        -D_UNICODE
     )
 
     target_link_libraries(cefdll_wrapper PUBLIC
@@ -156,27 +156,27 @@ elseif(CEF_CMAKE_OS_WINDOWS)
     add_custom_command(TARGET cefdll_wrapper POST_BUILD
         COMMENT "cefdll_wrapper: Copying CEF binaries"
         COMMAND ${CMAKE_COMMAND} -E
-            make_directory ${CEF_CMAKE_OUTPUT_DIR}
+        make_directory ${CEF_CMAKE_OUTPUT_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/swiftshader
-            ${CEF_CMAKE_OUTPUT_DIR}/swiftshader
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/swiftshader
+        ${CEF_CMAKE_OUTPUT_DIR}/swiftshader
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/chrome_elf.dll
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/d3dcompiler_47.dll
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libcef.dll
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libEGL.dll
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libGLESv2.dll
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/natives_blob.bin
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/snapshot_blob.bin
-            ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/v8_context_snapshot.bin
-            ${CEF_CMAKE_OUTPUT_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/chrome_elf.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/d3dcompiler_47.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libcef.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libEGL.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/libGLESv2.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/natives_blob.bin
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/snapshot_blob.bin
+        ${CMAKE_CURRENT_SOURCE_DIR}/${cefName}/$<CONFIG>/v8_context_snapshot.bin
+        ${CEF_CMAKE_OUTPUT_DIR}
     )
 
     if(CEF_USE_SANDBOX)
         target_compile_definitions(cefdll_wrapper
             PUBLIC
-                -DCEF_USE_SANDBOX
-                -DPSAPI_VERSION=1
+            -DCEF_USE_SANDBOX
+            -DPSAPI_VERSION=1
         )
 
         target_link_libraries(cefdll_wrapper PUBLIC
